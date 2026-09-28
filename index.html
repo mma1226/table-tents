@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="icon" href="data:,">
+<title>Modal Table Tents</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --ground:#0c0d0c; --panel:#141614; --panel-2:#1a1d1a; --line:#272b27;
+  --text:#eceeea; --muted:#8a9289; --faint:#5d645c;
+  --accent:#7fee64; --accent-ink:#0b1a07; --warn:#f2c14e;
+  --sans:"Inter",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{background:var(--ground);color:var(--text)}
+body{font-family:var(--sans);font-size:14px;line-height:1.5;padding-inline:20px;padding-block:24px 64px}
+.wrap{max-width:1280px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;border-bottom:1px solid var(--line);padding-bottom:18px}
+h1{font-size:22px;font-weight:600;letter-spacing:-.01em;margin:0;text-wrap:balance}
+.spec{font-family:var(--mono);font-size:11.5px;color:var(--muted);letter-spacing:.02em;display:flex;flex-wrap:wrap;gap:4px 14px}
+.spec b{color:var(--text);font-weight:500}
+.layout{display:grid;grid-template-columns:320px 1fr;gap:28px;align-items:start}
+@media (max-width:860px){.layout{grid-template-columns:1fr}}
+aside{display:flex;flex-direction:column;gap:18px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px)}
+@media (max-width:860px){aside{position:static}}
+.group{display:flex;flex-direction:column;gap:8px}
+.label{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
+.drop{border:1px dashed #3a403a;border-radius:10px;background:var(--panel);padding:22px 16px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s;display:flex;flex-direction:column;gap:4px}
+.drop:hover,.drop.over{border-color:var(--accent);background:var(--panel-2)}
+.drop:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.drop strong{font-weight:500}
+.drop span{color:var(--muted);font-size:12.5px}
+.file{font-family:var(--mono);font-size:11.5px;color:var(--muted);word-break:break-all}
+.file.sample{color:var(--warn)}
+select,input[type=text]{width:100%;font:inherit;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:8px 10px}
+select:focus-visible,input:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:3px;gap:3px}
+.seg button{font:inherit;font-size:12.5px;border:0;border-radius:5px;padding:6px;background:transparent;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--panel-2);color:var(--text);box-shadow:inset 0 0 0 1px var(--line)}
+.sub{font-size:11.5px;color:var(--faint)}
+.btn{font:inherit;font-weight:600;border:0;border-radius:8px;padding:12px 14px;cursor:pointer;background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;gap:8px}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line);font-weight:500;padding:9px 12px}
+.status{font-size:12.5px;color:var(--muted);min-height:1.5em}
+.status.err{color:#ff8a7a}
+.stats{display:flex;gap:14px;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.stats b{color:var(--text);font-weight:500}
+.stats .w{color:var(--warn)}
+main{display:flex;flex-direction:column;gap:28px;min-width:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px}
+.tent{display:flex;flex-direction:column;gap:6px;cursor:pointer;background:none;border:0;padding:0;color:inherit;font:inherit;text-align:left}
+.tent canvas{width:100%;aspect-ratio:3/4;height:auto;border-radius:4px;display:block;box-shadow:0 0 0 1px var(--line);background:#111}
+.tent:hover canvas,.tent:focus-visible canvas{box-shadow:0 0 0 2px var(--accent)}
+.tent:focus-visible{outline:none}
+.tent .cap{font-family:var(--mono);font-size:10.5px;color:var(--faint);display:flex;justify-content:space-between;gap:6px}
+.tent .cap .w{color:var(--warn)}
+.tent.off{opacity:.3}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;min-width:560px}
+th{font-family:var(--mono);font-weight:400;font-size:10.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);text-align:left;padding:10px 8px;border-bottom:1px solid var(--line)}
+td{padding:3px 4px;border-bottom:1px solid var(--line)}
+tr:last-child td{border-bottom:0}
+td.n{font-family:var(--mono);font-size:11px;color:var(--faint);width:38px;text-align:right;padding-right:10px;font-variant-numeric:tabular-nums}
+td input[type=text]{background:transparent;border-color:transparent;padding:6px 8px}
+td input[type=text]:hover{border-color:var(--line)}
+td.c{width:44px;text-align:center}
+tr.hl td{background:var(--panel-2)}
+.sechead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.sechead h2{font-size:14px;font-weight:500;margin:0}
+input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<style>body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <h1>Modal Table Tents</h1>
+    <div class="spec">
+      <span><b>3.75 × 5 in</b> · 270 × 360 pt</span>
+      <span>fold at 2.5 in, top panel mirrored</span>
+      <span>Inter Medium 20/26 · Inter Regular 10</span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside>
+      <div class="group">
+        <div class="label">Guest list</div>
+        <div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose a spreadsheet">
+          <strong>Drop an .xlsx or .csv</strong>
+          <span>or click to choose a file</span>
+        </div>
+        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv,.tsv,.numbers,.ods" hidden>
+        <div class="file sample" id="fileName">Showing sample: Stockholm dinner, 18 guests</div>
+      </div>
+
+      <div class="group" id="mapping">
+        <div class="label">Columns</div>
+        <div class="seg" role="group" aria-label="Name format">
+          <button type="button" id="modeSplit" aria-pressed="true">First + last</button>
+          <button type="button" id="modeFull" aria-pressed="false">Full name</button>
+        </div>
+        <div class="row2" id="splitCols">
+          <select id="colFirst" aria-label="First name column"></select>
+          <select id="colLast" aria-label="Last name column"></select>
+        </div>
+        <div id="fullCols" hidden>
+          <select id="colFull" aria-label="Full name column"></select>
+          <div class="sub" style="margin-top:6px">First word goes on line 1, the rest on line 2.</div>
+        </div>
+        <select id="colCompany" aria-label="Company column"></select>
+        <div class="sub" id="sheetInfo"></div>
+      </div>
+
+      <div class="group">
+        <div class="label">Tent style</div>
+        <div class="seg" role="group" aria-label="Tent style">
+          <button type="button" id="styleDark" aria-pressed="true">Dark</button>
+          <button type="button" id="styleLight" aria-pressed="false">Light</button>
+        </div>
+      </div>
+
+      <div class="group">
+        <label class="label" for="eventName">Event name (for the filename)</label>
+        <input type="text" id="eventName" value="Stockholm">
+      </div>
+
+      <div class="group">
+        <div class="stats"><span><b id="stCount">0</b> tents</span><span id="stShrunk"></span></div>
+        <button class="btn" id="dlBtn" type="button">Download print PDF</button>
+        <button class="btn ghost" id="dlCsv" type="button">Download blank CSV template</button>
+        <div class="status" id="status"></div>
+      </div>
+    </aside>
+
+    <main>
+      <section class="group">
+        <div class="sechead"><h2>Preview</h2><span class="sub">Click a tent to edit its row</span></div>
+        <div class="grid" id="grid"></div>
+      </section>
+      <section class="group">
+        <div class="sechead">
+          <h2>Rows</h2>
+          <button class="btn ghost" id="addRow" type="button">Add row</button>
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th></th><th>Line 1</th><th>Line 2</th><th>Company</th><th>Print</th></tr></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script>
+<script>
+(() => {
+// ---------- Layout spec (points, PDF coords, origin bottom-left), taken from the Stockholm print file ----------
+const PAGE_W = 270, PAGE_H = 360, CX = 135;
+const NAME_SIZE = 20, NAME_LEAD = 26, NAME_BASE = 92;   // last name line sits on y=92, line above at 118
+const CO_SIZE = 10, CO_BASE = 70, CO_GRAY = 0.788;       // #C9C9C9
+const MAX_W = 230, MIN_NAME = 11;
+const STYLES = {
+  dark:  { tpl: 'template.pdf',       bg: 'bg.jpg',       name: 1,     co: CO_GRAY, ground: '#141414' },
+  light: { tpl: 'template-light.pdf', bg: 'bg-light.jpg', name: 0.067, co: 0.42,    ground: '#ececec' },
+};
+let styleKey = 'dark';
+const st = () => STYLES[styleKey];
+
+function layout(r, measure) {
+  const lines = [r.l1, r.l2].map(s => (s || '').trim()).filter(Boolean);
+  let size = NAME_SIZE;
+  const widest = Math.max(0, ...lines.map(t => measure(t, 'med', NAME_SIZE)));
+  if (widest > MAX_W) size = Math.max(MIN_NAME, NAME_SIZE * MAX_W / widest);
+  const lead = NAME_LEAD * size / NAME_SIZE;
+  const out = [];
+  lines.forEach((t, i) => {
+    const y = NAME_BASE + (lines.length - 1 - i) * lead;
+    out.push({ t, w: 'med', size, x: CX - measure(t, 'med', size) / 2, y, role: 'name' });
+  });
+  const co = (r.co || '').trim();
+  let csize = CO_SIZE;
+  if (co) {
+    const cw = measure(co, 'reg', CO_SIZE);
+    if (cw > MAX_W) csize = CO_SIZE * MAX_W / cw;
+    out.push({ t: co, w: 'reg', size: csize, x: CX - measure(co, 'reg', csize) / 2, y: CO_BASE, role: 'co' });
+  }
+  return { items: out, shrunk: size < NAME_SIZE || csize < CO_SIZE };
+}
+
+// ---------- State ----------
+const SAMPLE = [["Ruben","Das","Freda"],["Adam","Jafer","Pit"],["Siavash","Ghorbani","Stilla"],["Jacob","Lauritzen","Legora"],["Melvin","Hagberg","Scape"],["David","Osterdahl","Redpine"],["Linus","Bein Fahlander","Brickanta"],["Andreas","Meisingseth","Mimo"],["Eric","Hansander","Modal"],["Viktor","Mörsell","Flower"],["Mo","Elkhidir","Epiminds"],["Håkan","Waara","All Ears"],["Sven","Perkmann","Anyfin"],["Erik","Bernhardsson","Modal"],["Rebecka","Storm","Modal"],["Ollie","Allman","Modal"],["Elias","Freider","Modal"],["Omar","Marzouk","Soundtrack"]];
+let sheet = { headers: ['First name','Last name','Company'], data: SAMPLE.map(r => r.slice()) };
+let map = { mode: 'split', first: 0, last: 1, full: -1, company: 2 };
+let rows = [];
+const $ = id => document.getElementById(id);
+
+// ---------- Assets ----------
+let fontsReady = false;
+const bgImgs = {};
+const bgP = Promise.all(Object.entries(STYLES).map(([k, v]) => new Promise(res => { const i = new Image(); i.onload = () => { bgImgs[k] = i; res(); }; i.onerror = res; i.src = v.bg; })));
+const fontP = Promise.all([
+  new FontFace('TentMed', 'url(Inter-Medium.ttf)').load(),
+  new FontFace('TentReg', 'url(Inter-Regular.ttf)').load(),
+]).then(fs => { fs.forEach(f => document.fonts.add(f)); fontsReady = true; }).catch(() => {});
+
+const mctx = document.createElement('canvas').getContext('2d');
+function canvasMeasure(t, w, size) {
+  mctx.font = `${size}px ${w === 'med' ? 'TentMed' : 'TentReg'}`;
+  return mctx.measureText(t).width;
+}
+
+// ---------- Column detection ----------
+const RX = {
+  first: /^(first|given|fname|f\.?\s?name|first[\s_-]*name|förnamn|fornavn)/i,
+  last: /(^last|surname|family|lname|last[\s_-]*name|efternamn|etternavn)/i,
+  full: /^(name|full[\s_-]*name|attendee|guest|guest[\s_-]*name|attendee[\s_-]*name|namn|display[\s_-]*name|speaker)$/i,
+  company: /(company|org|organi[sz]ation|employer|företag|firma|affiliation|account|startup|team|business)/i,
+};
+function detect(headers) {
+  const find = rx => headers.findIndex(h => rx.test(String(h).trim()));
+  let first = find(RX.first), last = find(RX.last), full = find(RX.full), company = find(RX.company);
+  if (full < 0) full = headers.findIndex((h, i) => /name/i.test(h) && i !== first && i !== last && i !== company);
+  const mode = (first >= 0 && last >= 0) ? 'split' : (full >= 0 ? 'full' : 'split');
+  if (mode === 'split' && first < 0) { first = 0; last = 1; }
+  if (company < 0) company = headers.findIndex((_, i) => ![first, last, full].includes(i));
+  return { mode, first, last, full: full < 0 ? 0 : full, company };
+}
+
+function buildRows() {
+  const g = (r, i) => i >= 0 && r[i] != null ? String(r[i]).trim() : '';
+  rows = sheet.data.map(r => {
+    let l1, l2;
+    if (map.mode === 'split') { l1 = g(r, map.first); l2 = g(r, map.last); }
+    else { const s = g(r, map.full).split(/\s+/); l1 = s.shift() || ''; l2 = s.join(' '); }
+    return { l1, l2, co: g(r, map.company), on: true };
+  }).filter(r => r.l1 || r.l2 || r.co);
+}
+
+// ---------- Mapping UI ----------
+function fillSelects() {
+  const opts = ['<option value="-1">— none —</option>'].concat(sheet.headers.map((h, i) => `<option value="${i}">${esc(h || 'Column ' + colLetter(i))}</option>`)).join('');
+  for (const [id, key, lab] of [['colFirst','first','First'],['colLast','last','Last'],['colFull','full','Name'],['colCompany','company','Company']]) {
+    const s = $(id); s.innerHTML = opts; s.value = String(map[key]);
+    s.onchange = () => { map[key] = +s.value; buildRows(); renderAll(); };
+  }
+  setMode(map.mode, false);
+}
+function setMode(m, rebuild = true) {
+  map.mode = m;
+  $('modeSplit').setAttribute('aria-pressed', m === 'split');
+  $('modeFull').setAttribute('aria-pressed', m === 'full');
+  $('splitCols').hidden = m !== 'split';
+  $('fullCols').hidden = m !== 'full';
+  if (rebuild) { buildRows(); renderAll(); }
+}
+$('modeSplit').onclick = () => setMode('split');
+$('modeFull').onclick = () => setMode('full');
+function setStyle(k) {
+  styleKey = k;
+  $('styleDark').setAttribute('aria-pressed', k === 'dark');
+  $('styleLight').setAttribute('aria-pressed', k === 'light');
+  try { localStorage.setItem('tentStyle', k); } catch (e) {}
+  rows.forEach((_, i) => paintOne(i));
+}
+$('styleDark').onclick = () => setStyle('dark');
+$('styleLight').onclick = () => setStyle('light');
+
+// ---------- Rendering ----------
+function drawTent(cv, r) {
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const cssW = cv.clientWidth || 180;
+  const W = Math.round(cssW * dpr), H = Math.round(W * 4 / 3);
+  if (cv.width !== W) { cv.width = W; cv.height = H; }
+  const c = cv.getContext('2d'), s = W / PAGE_W;
+  c.setTransform(1, 0, 0, 1, 0, 0);
+  c.fillStyle = st().ground; c.fillRect(0, 0, W, H);
+  if (bgImgs[styleKey]) c.drawImage(bgImgs[styleKey], 0, 0, W, H);
+  if (!fontsReady) return false;
+  const L = layout(r, canvasMeasure);
+  const paint = () => L.items.forEach(it => {
+    c.font = `${it.size * s}px ${it.w === 'med' ? 'TentMed' : 'TentReg'}`;
+    const g = Math.round(st()[it.role] * 255);
+    c.fillStyle = `rgb(${g},${g},${g})`;
+    c.fillText(it.t, it.x * s, (PAGE_H - it.y) * s);
+  });
+  paint();
+  c.save(); c.translate(W, H); c.rotate(Math.PI); paint(); c.restore();
+  return L.shrunk;
+}
+
+function renderGrid() {
+  const grid = $('grid'); grid.innerHTML = '';
+  rows.forEach((r, i) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'tent' + (r.on ? '' : ' off');
+    b.setAttribute('aria-label', `Edit ${r.l1} ${r.l2}`);
+    b.innerHTML = `<canvas></canvas><div class="cap"><span>${String(i + 1).padStart(2, '0')}</span><span class="flag"></span></div>`;
+    b.onclick = () => focusRow(i);
+    grid.appendChild(b);
+  });
+  requestAnimationFrame(() => rows.forEach((r, i) => paintOne(i)));
+}
+function paintOne(i) {
+  const el = $('grid').children[i]; if (!el) return;
+  const shrunk = drawTent(el.querySelector('canvas'), rows[i]);
+  const f = el.querySelector('.flag'); f.textContent = shrunk ? 'scaled to fit' : ''; f.className = 'flag' + (shrunk ? ' w' : '');
+  el.classList.toggle('off', !rows[i].on);
+}
+
+function renderTable() {
+  const tb = $('tbody'); tb.innerHTML = '';
+  rows.forEach((r, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="n">${i + 1}</td>
+      <td><input type="text" id="r${i}l1" aria-label="Line 1, row ${i + 1}"></td>
+      <td><input type="text" id="r${i}l2" aria-label="Line 2, row ${i + 1}"></td>
+      <td><input type="text" id="r${i}co" aria-label="Company, row ${i + 1}"></td>
+      <td class="c"><input type="checkbox" id="r${i}on" aria-label="Print row ${i + 1}"></td>`;
+    for (const k of ['l1', 'l2', 'co']) {
+      const inp = tr.querySelector(`#r${i}${k}`); inp.value = r[k];
+      inp.oninput = () => { r[k] = inp.value; paintOne(i); updateStats(); };
+    }
+    const cb = tr.querySelector(`#r${i}on`); cb.checked = r.on;
+    cb.onchange = () => { r.on = cb.checked; paintOne(i); updateStats(); };
+    tb.appendChild(tr);
+  });
+}
+function focusRow(i) {
+  const inp = $(`r${i}l1`); if (!inp) return;
+  document.querySelectorAll('tr.hl').forEach(t => t.classList.remove('hl'));
+  inp.closest('tr').classList.add('hl');
+  inp.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+  inp.focus({ preventScroll: true });
+}
+function updateStats() {
+  const on = rows.filter(r => r.on);
+  $('stCount').textContent = on.length;
+  const n = fontsReady ? on.filter(r => layout(r, canvasMeasure).shrunk).length : 0;
+  const el = $('stShrunk'); el.textContent = n ? `${n} scaled to fit` : ''; el.className = n ? 'w' : '';
+  $('dlBtn').disabled = !on.length;
+}
+function renderAll() { renderGrid(); renderTable(); updateStats(); }
+
+$('addRow').onclick = () => { rows.push({ l1: '', l2: '', co: '', on: true }); renderAll(); focusRow(rows.length - 1); };
+
+// ---------- File input ----------
+const drop = $('drop'), fi = $('fileInput');
+drop.onclick = () => fi.click();
+drop.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fi.click(); } };
+drop.ondragover = e => { e.preventDefault(); drop.classList.add('over'); };
+drop.ondragleave = () => drop.classList.remove('over');
+drop.ondrop = e => { e.preventDefault(); drop.classList.remove('over'); if (e.dataTransfer.files[0]) readFile(e.dataTransfer.files[0]); };
+fi.onchange = () => { if (fi.files[0]) readFile(fi.files[0]); fi.value = ''; };
+
+async function readFile(file) {
+  setStatus('');
+  try {
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: 'array' });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    let aoa = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', blankrows: false, raw: false });
+    aoa = aoa.filter(r => r.some(c => String(c).trim()));
+    if (!aoa.length) throw new Error('The first sheet is empty.');
+    const first = aoa[0].map(String);
+    const looksHeader = first.some(h => Object.values(RX).some(rx => rx.test(h.trim())));
+    const width = Math.max(...aoa.map(r => r.length));
+    const headers = looksHeader ? first : Array.from({ length: width }, (_, i) => 'Column ' + colLetter(i));
+    sheet = { headers, data: looksHeader ? aoa.slice(1) : aoa };
+    map = detect(headers);
+    fillSelects(); buildRows(); renderAll();
+    const f = $('fileName'); f.textContent = file.name; f.classList.remove('sample');
+    $('sheetInfo').textContent = `Sheet “${wb.SheetNames[0]}” · ${sheet.data.length} rows${looksHeader ? '' : ' · no header row found'}`;
+    const ev = file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').replace(/\b(guest|guests|list|attendees|rsvp|rsvps|table|tents?)\b/gi, '').trim();
+    if (ev) $('eventName').value = ev;
+  } catch (err) {
+    setStatus(`Couldn’t read ${file.name}: ${err.message || err}. Try saving it as .xlsx or .csv.`, true);
+  }
+}
+
+// ---------- PDF ----------
+const pdfAssets = {};
+async function loadPdfAssets() {
+  if (pdfAssets[styleKey]) return pdfAssets[styleKey];
+  const get = u => fetch(u).then(r => { if (!r.ok) throw new Error(u + ' ' + r.status); return r.arrayBuffer(); });
+  const [tpl, med, reg] = await Promise.all([get(st().tpl), get('Inter-Medium.ttf'), get('Inter-Regular.ttf')]);
+  return (pdfAssets[styleKey] = { tpl, med, reg });
+}
+async function buildPdf(list) {
+  const { PDFDocument, rgb, pushGraphicsState, popGraphicsState, concatTransformationMatrix } = PDFLib;
+  const a = await loadPdfAssets();
+  const doc = await PDFDocument.create();
+  doc.registerFontkit(window.fontkit);
+  doc.setTitle('Modal Table Tents ' + $('eventName').value);
+  doc.setCreator('Modal Table Tents generator');
+  const [tpl] = await doc.embedPdf(a.tpl, [0]);
+  const med = await doc.embedFont(a.med, { subset: false });
+  const reg = await doc.embedFont(a.reg, { subset: false });
+  const fonts = { med, reg };
+  const measure = (t, w, size) => fonts[w].widthOfTextAtSize(t, size);
+  for (const r of list) {
+    const page = doc.addPage([PAGE_W, PAGE_H]);
+    page.drawPage(tpl, { x: 0, y: 0, width: PAGE_W, height: PAGE_H });
+    const L = layout(r, measure);
+    const paint = () => L.items.forEach(it => { const g = st()[it.role]; page.drawText(it.t, { x: it.x, y: it.y, size: it.size, font: fonts[it.w], color: rgb(g, g, g) }); });
+    paint();
+    page.pushOperators(pushGraphicsState(), concatTransformationMatrix(-1, 0, 0, -1, PAGE_W, PAGE_H));
+    paint();
+    page.pushOperators(popGraphicsState());
+  }
+  return doc.save();
+}
+
+let downloads = null;
+if (window.claude?.use) claude.use('downloads').then(d => { downloads = d; }).catch(() => {});
+
+$('dlBtn').onclick = async () => {
+  const list = rows.filter(r => r.on && (r.l1 || r.l2));
+  if (!list.length) return;
+  const btn = $('dlBtn'); btn.disabled = true; btn.textContent = `Building ${list.length} pages…`;
+  try {
+    const bytes = await buildPdf(list);
+    const ev = ($('eventName').value || 'Event').trim().replace(/[^\p{L}\p{N}]+/gu, '_').replace(/^_|_$/g, '');
+    const filename = `Modal_TableTents_${ev || 'Event'}${styleKey === 'light' ? '_Light' : ''}_PRINT.pdf`;
+    await save(filename, new Blob([bytes], { type: 'application/pdf' }));
+  } catch (err) {
+    setStatus(errMsg(err), true);
+  } finally { btn.disabled = false; btn.textContent = 'Download print PDF'; }
+};
+$('dlCsv').onclick = async () => {
+  try { await save('table_tents_template.csv', 'First name,Last name,Company\nRuben,Das,Freda\n'); }
+  catch (err) { setStatus(errMsg(err), true); }
+};
+async function save(filename, data) {
+  if (downloads) {
+    await downloads.save({ filename, data });
+    setStatus(`Saved ${filename}`);
+  } else {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(data instanceof Blob ? data : new Blob([data]));
+    a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+    setStatus(`Downloading ${filename}`);
+  }
+}
+function errMsg(err) {
+  if (err && err.code === 'declined') return 'Download cancelled.';
+  if (err && err.code === 'rate_limited') return 'A save prompt is already open. Finish that one first.';
+  return 'Couldn’t build the PDF: ' + (err && err.message || err);
+}
+function setStatus(t, bad) { const s = $('status'); s.textContent = t; s.classList.toggle('err', !!bad); }
+
+// ---------- helpers ----------
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function colLetter(i) { let s = ''; i++; while (i) { const m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; }
+
+let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => rows.forEach((_, i) => paintOne(i)), 150); });
+
+fillSelects(); buildRows(); renderAll();
+try { const k = localStorage.getItem('tentStyle'); if (STYLES[k]) setStyle(k); } catch (e) {}
+Promise.all([bgP, fontP]).then(() => { rows.forEach((_, i) => paintOne(i)); updateStats(); });
+})();
+</script>
+
+</body>
+</html>
